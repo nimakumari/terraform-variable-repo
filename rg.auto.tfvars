@@ -1,0 +1,2 @@
+rgname = "somurg"
+rglocation = "eastus"
