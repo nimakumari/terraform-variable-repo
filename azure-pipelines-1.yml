@@ -1,0 +1,27 @@
+
+
+trigger:
+- main
+
+pool: Agent ka pool
+
+stages:
+  - stage: inittoplan
+    displayName: init to plan job
+    jobs:
+      - job: inittoplan
+        displayName: init to plan
+        steps:
+        - task: TerraformInstaller@1
+          inputs:
+            terraformVersion: 'latest'
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            backendServiceArm: 'nimacervice'
+            backendAzureRmStorageAccountName: 'storagepipe123'
+            backendAzureRmContainerName: 'tfstate'
+            backendAzureRmKey: 'terraform.tfvars'
+
+      
