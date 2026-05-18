@@ -59,7 +59,6 @@ stages:
       - task: TerraformTask@5
         inputs:
           provider: 'azurerm'
-          command: 'custom'
-          outputTo: 'console'
-          customCommand: 'apply -auto-approve'
+          command: 'apply'
+          commandOptions: '-auto-approve'
           environmentServiceNameAzureRM: 'nimacervice'
