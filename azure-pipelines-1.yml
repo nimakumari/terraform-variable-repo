@@ -1,64 +1,98 @@
 trigger:
-- main
+  - main
 
-pool: Agent ka pool
+pool:
+  name: "Agent ka pool"
 
 stages:
 
-- stage: inittoplan
-  jobs:
-  - job: terraformjob
-    steps:
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: 'latest'
+  - stage: inittoplan
+    displayName: "Terraform Init and Plan"
 
-    - task: TerraformTask@5
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        backendServiceArm: 'nimacervice'
-        backendAzureRmStorageAccountName: 'storageterra123'
-        backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: 'terraform.tfvars'
+    jobs:
+      - job: terraformjob
+        displayName: "Terraform Init & Plan"
 
-    - task: TerraformTask@5
-      inputs:
-        provider: 'azurerm'
-        command: 'plan'
-        environmentServiceNameAzureRM: 'nimacervice'
+        steps:
+          - task: TerraformInstaller@1
+            displayName: "Install Terraform"
+            inputs:
+              terraformVersion: "latest"
 
+          - task: TerraformTask@5
+            displayName: "Terraform Init"
+            inputs:
+              provider: "azurerm"
+              command: "init"
+              backendServiceArm: "nimacervice"
+              backendAzureRmStorageAccountName: "storageterra123"
+              backendAzureRmContainerName: "tfstate"
+              backendAzureRmKey: "terraform.tfvars"
 
-- stage: mannualvalidation
-  dependsOn: inittoplan
+          - task: TerraformTask@5
+            displayName: "Terraform Plan"
+            inputs:
+              provider: "azurerm"
+              command: "plan"
+              environmentServiceNameAzureRM: "nimacervice"
 
-  jobs:
-  - job: approval
-    pool: server
+  - stage: scanning
+    displayName: "Scanning"
 
-    steps:
-    - task: ManualValidation@1
-      inputs:
-        notifyUsers: 'nimakumaripiet@gmail.com'
-        instructions: 'Approve Terraform deployment'
-        onTimeout: 'reject'
+    jobs:
+      - job: tfsecscan
+        displayName: "Run tfsec Scan"
 
-- stage: terraformapply
-  jobs:
-    - job: inittoapply
-      steps:
-      - task: TerraformTask@5
-        inputs:
-          provider: 'azurerm'
-          command: 'init'
-          backendServiceArm: 'nimacervice'
-          backendAzureRmStorageAccountName: 'storageterra123'
-          backendAzureRmContainerName: 'tfstate'
-          backendAzureRmKey: 'terraform.tfvars'
+        pool:
+          name: "Agent ka pool"
 
-      - task: TerraformTask@5
-        inputs:
-          provider: 'azurerm'
-          command: 'apply'
-          commandOptions: '-auto-approve'
-          environmentServiceNameAzureRM: 'nimacervice'
+        steps:
+          - script: |
+              brew install tfsec
+              tfsec .
+            displayName: "Run tfsec Scan"
+
+  - stage: manualvalidation
+    displayName: "Manual Validation"
+    dependsOn: inittoplan
+
+    jobs:
+      - job: approval
+        displayName: "Approval Required"
+
+        pool: server
+
+        steps:
+          - task: ManualValidation@1
+            displayName: "Manual Approval"
+            inputs:
+              notifyUsers: "nimakumaripiet@gmail.com"
+              instructions: "Approve Terraform deployment"
+              onTimeout: "reject"
+
+  - stage: terraformapply
+    displayName: "Terraform Apply"
+    dependsOn: manualvalidation
+
+    jobs:
+      - job: inittoapply
+        displayName: "Terraform Apply Job"
+
+        steps:
+          - task: TerraformTask@5
+            displayName: "Terraform Init"
+            inputs:
+              provider: "azurerm"
+              command: "init"
+              backendServiceArm: "nimacervice"
+              backendAzureRmStorageAccountName: "storageterra123"
+              backendAzureRmContainerName: "tfstate"
+              backendAzureRmKey: "terraform.tfvars"
+
+          - task: TerraformTask@5
+            displayName: "Terraform Apply"
+            inputs:
+              provider: "azurerm"
+              command: "apply"
+              commandOptions: "-auto-approve"
+              environmentServiceNameAzureRM: "nimacervice"
