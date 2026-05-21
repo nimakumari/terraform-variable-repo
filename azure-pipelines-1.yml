@@ -38,6 +38,7 @@ stages:
 
   - stage: scanning
     displayName: "Scanning"
+    dependsOn: inittoplan
 
     jobs:
       - job: tfsecscan
@@ -47,14 +48,14 @@ stages:
           name: "Agent ka pool"
 
         steps:
-          - script: |
-              brew install tfsec
+          - powershell: |
+              choco install tfsec -y
               tfsec .
-            displayName: "Run tfsec Scan"
+            displayName: "Install and Run tfsec"
 
   - stage: manualvalidation
     displayName: "Manual Validation"
-    dependsOn: inittoplan
+    dependsOn: scanning
 
     jobs:
       - job: approval
