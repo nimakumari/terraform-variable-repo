@@ -48,11 +48,14 @@ stages:
           name: "Agent ka pool"
 
         steps:
-          - powershell: |
-              choco install tfsec -y
-              tfsec .
-            displayName: "Install and Run tfsec"
+        - powershell: |
+            Invoke-WebRequest `
+              -Uri "https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-windows-amd64.exe" `
+              -OutFile "tfsec.exe"
 
+            .\tfsec.exe .
+          displayName: "Download and Run tfsec"
+          
   - stage: manualvalidation
     displayName: "Manual Validation"
     dependsOn: scanning
