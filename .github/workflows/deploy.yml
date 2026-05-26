@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   create-rg:
-    runs-on: [self-hosted, nkrunner]
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Code
