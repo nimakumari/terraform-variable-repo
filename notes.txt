@@ -1,0 +1,7 @@
+1. create a runner
+2. app regegistration with fedreted identity nanageent
+3. put all the value of ado in the option review+ assign
+4. rbck contributer access to thi app registration at subsc level
+5. then go to action setting then variale and secrets then create secrets for client, tenant and subscription id
+6. then write the yaml code the commit changes the view commits
+7. 
